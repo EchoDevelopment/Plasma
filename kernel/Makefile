@@ -20,6 +20,10 @@ SRC = $(call rwildcard,$(SRCDIR),*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
+.PHONY: all
+
+all: kernel buildimg
+
 kernel: $(OBJS) link
 	
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
