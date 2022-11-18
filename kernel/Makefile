@@ -3,10 +3,10 @@ OSNAME = Silicon
 GNUEFI = ../gnu-efi
 OVMFDIR = ../OVMFbin
 LDS = kernel.ld
-CC = gcc
+CC = clang
 LD = ld
 
-CFLAGS = -fno-stack-protector -ffreestanding -fshort-wchar -Isrc -Isrc/core/stdlib -include src/core/std.h
+CFLAGS = -fno-stack-protector -ffreestanding -fshort-wchar -Isrc -Isrc/kernellib -include src/kernellib/std.h
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib 
 
 SRCDIR := src
@@ -16,8 +16,10 @@ BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRC = $(call rwildcard,$(SRCDIR),*.cpp)          
+SRC = $(call rwildcard,$(SRCDIR),*.cpp)         
+ASMSRC = $(call rwildcard,$(SRCDIR),*.S)         
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
+OBJS += $(patsubst $(SRCDIR)/%.S, $(OBJDIR)/%_S.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
 .PHONY: all
@@ -30,6 +32,10 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@echo !==== COMPILING $^
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
+
+$(OBJDIR)/%_S.o: $(SRCDIR)/%.S
+	@mkdir -p $(@D)
+	$(CC) -c $^ -o $@
 
 link:
 	@echo !==== LINKING
@@ -51,7 +57,7 @@ buildimg:
 	mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/zap-light16.psf ::
 
 run:
-	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none
+	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none -d int
 
 clean:
 	rm -rf build
