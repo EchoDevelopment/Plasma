@@ -39,6 +39,7 @@ $(OBJDIR)/%_S.o: $(SRCDIR)/%.S
 
 link:
 	@echo !==== LINKING
+	rm -rf $(BUILDDIR)/kernel.elf
 	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS) 
 
 setup:
@@ -47,6 +48,7 @@ setup:
 	@mkdir $(OBJDIR)
 
 buildimg:
+	rm -rf $(BUILDIR)/$(OSNAME).img
 	dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=93750
 	mkfs.fat -F 32 $(BUILDDIR)/$(OSNAME).img
 	mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI
@@ -57,7 +59,10 @@ buildimg:
 	mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/zap-light16.psf ::
 
 run:
-	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none -d int
+	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -D log.txt -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none 
+
+debug:
+	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -s -S -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none -d cpu_reset
 
 clean:
 	rm -rf build

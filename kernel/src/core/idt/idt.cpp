@@ -19,15 +19,26 @@ uint64_t idt_entry::getOffset()
     return (uint64_t) offset0 | (uint64_t) (offset1 << 16) | (((uint64_t) offset2) << 32);
 }
 
+void setup_int(uint8_t vec, uint64_t offset, uint8_t attributes)
+{
+    idt_entry* entry = &idt[vec];
+    entry->setOffset(offset);
+    entry->attributes = attributes;
+    entry->kernel_cs = 0x08;
+}
+
 void init_idt()
 {
     idtdesc.limit = 0x0FFF;
     idtdesc.base = (uint64_t)idt;
 
-    idt_entry* test = &idt[0x80];
-    test->setOffset((uint64_t)syscall_int);
-    test->attributes = IDTINTGATE;
-    test->kernel_cs = 0x08;
+    setup_int(0x80, (uint64_t)syscall_int, IDTINTGATE);
+    setup_int(0x20, (uint64_t)timer_int, IDTINTGATE);
+
+    for (size_t i = 0; i < 0x20; i++)
+    {
+        setup_int(i, (uint64_t)error_handler, IDTINTGATE);
+    }
 
     __asm__ volatile ("lidt %0" : : "m" (idtdesc)); // load the new IDT
 }

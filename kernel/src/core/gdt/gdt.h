@@ -1,12 +1,12 @@
 #pragma once
 
-struct GDTDesc
+struct gdt_desc
 {
     uint16_t size;
     uint64_t offset;
 } __attribute__((packed));
 
-struct GDTEntry
+struct gdt_entry
 {
     uint16_t limit0;
     uint16_t base0;
@@ -16,14 +16,16 @@ struct GDTEntry
     uint8_t base2;
 } __attribute__((packed));
 
-struct GDT
+struct gdt
 {
-    GDTEntry null;
-    GDTEntry code;
-    GDTEntry data;
+    gdt_entry null;
+    gdt_entry code;
+    gdt_entry data;
+    gdt_entry user_code;
+    gdt_entry user_data;
 } __attribute__((packed))
 __attribute__((aligned(0x1000)));
 
-extern GDT defaultGDT;
+extern gdt defaultGDT;
 
-extern "C" void _loadgdt(GDTDesc* gdtd);
+extern "C" void _loadgdt(gdt_desc* gdtr);

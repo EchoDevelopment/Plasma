@@ -16,5 +16,4 @@ _loadgdt:
     pushq %rax
     pushq %rdi
     lretq
-    ret
     

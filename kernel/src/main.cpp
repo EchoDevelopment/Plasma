@@ -1,6 +1,9 @@
 #include "stdio.h"
 #include "core/gdt/gdt.h"
 #include "core/idt/idt.h"
+#include "core/timer/timer.h"
+#include "core/asm/asm.h"
+#include "core/interrupts/pic.h"
 
 Framebuffer* framebuffer;
 PSF1_FONT* font;
@@ -12,16 +15,16 @@ extern "C" void _start(Framebuffer* buffer, PSF1_FONT* defaultFont)
     font = defaultFont; 
     terminal = oterminal{};
 
-    GDTDesc gdtd;
-    gdtd.size = sizeof(GDT) - 1;
-    gdtd.offset = (size_t)&defaultGDT;
-    _loadgdt(&gdtd);
+    gdt_desc gdtr;
+    gdtr.size = sizeof(gdt) - 1;
+    gdtr.offset = (size_t)&defaultGDT;
+    _loadgdt(&gdtr);
 
+    irq_remap();
     init_idt();
+    init_timer();
 
-    __asm__ volatile ("int $0x80");
-
-    printf("Done");
+    sti();
 
     while (true);
 }
