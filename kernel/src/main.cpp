@@ -1,9 +1,10 @@
 #include "stdio.h"
 #include "core/gdt/gdt.h"
-#include "core/idt/idt.h"
+#include "core/interrupts/idt.h"
 #include "core/timer/timer.h"
 #include "core/asm/asm.h"
 #include "core/interrupts/pic.h"
+#include "core/keyboard/keyboard.h"
 
 Framebuffer* framebuffer;
 PSF1_FONT* font;
@@ -24,7 +25,22 @@ extern "C" void _start(Framebuffer* buffer, PSF1_FONT* defaultFont)
     init_idt();
     init_timer();
 
+    terminal.write(' ');
+
     sti();
 
-    while (true);
+    while (true)
+    {
+        for (size_t i = 0; i < 57; i++)
+        {
+            if (keyboard.shift)
+            {
+                if (keyboard.isPressed((KeyCode) i)) printf("%c", key_char[i].upper);
+            }
+            else 
+            {
+                if (keyboard.isPressed((KeyCode) i)) printf("%c", key_char[i].lower);
+            }
+        }
+    }
 }

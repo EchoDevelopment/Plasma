@@ -21,8 +21,6 @@ struct gdt
     gdt_entry null;
     gdt_entry code;
     gdt_entry data;
-    gdt_entry user_code;
-    gdt_entry user_data;
 } __attribute__((packed))
 __attribute__((aligned(0x1000)));
 

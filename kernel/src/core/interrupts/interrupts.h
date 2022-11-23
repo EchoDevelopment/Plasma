@@ -11,3 +11,4 @@ struct interrupt_frame
 __attribute__((interrupt)) void error_handler(struct interrupt_frame* frame);
 __attribute__((interrupt)) void syscall_int(struct interrupt_frame* frame);
 __attribute__((interrupt)) void timer_int(struct interrupt_frame* frame);
+__attribute__((interrupt)) void keyboard_int(struct interrupt_frame* frame);
